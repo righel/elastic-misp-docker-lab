@@ -51,6 +51,8 @@ services:
     ports:
       - "8080:80"
       - "8443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - "./configs/:/var/www/MISP/app/Config/"
       - "./logs/:/var/www/MISP/app/tmp/logs/"
@@ -59,6 +61,7 @@ services:
       - "./gnupg/:/var/www/MISP/.gnupg/"
       # customize by replacing ${CUSTOM_PATH} with a path containing 'files/customize_misp.sh'
       # - "${CUSTOM_PATH}/:/custom/"
+      - "./core/files/enable_xdebug.sh:/custom/customize_misp.sh"
       # mount custom ca root certificates
       # - "./rootca.pem:/usr/local/share/ca-certificates/rootca.crt"
     environment:
@@ -128,68 +131,5 @@ services:
     depends_on:
       - redis
 
-  elasticsearch:
-    image: elasticsearch:8.12.2
-    ports:
-      - 9200:9200
-      - 9300:9300
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  kibana:
-    image: kibana:8.12.2
-    ports:
-      - 5601:5601
-    environment:
-      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOST:-elasticsearch}
-      - xpack.security.enabled=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.12.2
-    user: root
-    configs:
-      - source: fb_config
-        target: /usr/share/filebeat/filebeat.yml
-    volumes:
-      - filebeat:/usr/share/filebeat/data
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
-    environment:
-      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elasticsearch}
-      - KIBANA_HOST=${KIBANA_HOST:-kibana}
-      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME:-elastic}
-      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
-      - MISP_HOST=${MISP_HOST}
-      - MISP_ELASTIC_API_KEY=${MISP_ELASTIC_API_KEY}
-    command: [
-      "--strict.perms=false",
-      "-e",
-      "-d", 
-      "info",
-      ]
-    deploy:
-      mode: global
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-
 volumes:
     mysql_data:
-    filebeat:
-
-configs:
-  fb_config:
-    file: filebeat/config/filebeat.yml
