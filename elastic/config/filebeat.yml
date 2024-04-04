@@ -8,17 +8,11 @@ filebeat.modules:
       var.url: "https://${MISP_HOST}/events/restSearch"
       var.api_token: "${MISP_ELASTIC_API_KEY}"
       var.first_interval: 24h
-      var.interval: 1m
+      var.interval: 10m
       var.ssl.verification_mode: none
-      # var.filters:
-      #   type: ["md5", "sha256", "url", "ip-src"]
-      #   threat_level: 4
-      #   tags: ["tlp:white"]
-
-filebeat.inputs:
-  - type: log
-    paths:
-      - /tmp/dummy.log
+      var.filters:
+        type: ["md5", "sha256", "sha512", "url", "uri", "ip-src", "ip-dst", "hostname", "domain"]
+        tags: ['workflow:state="complete"']
 
 #========================== Filebeat autodiscover ==============================
 # See this URL on how to run Apache2 Filebeat module: # https://www.elastic.co/guide/en/beats/filebeat/current/running-on-docker.html
@@ -51,8 +45,8 @@ setup.dashboards:
 #============================== Kibana =========================================
 setup.kibana:
   host: "${KIBANA_HOST}"
-  username: ${KIBANA_USERNAME}
-  password: ${KIBANA_PASSWORD}
+  username: kibana_system
+  password: ${KIBANA_SYSTEM_PASSWORD}
 
 #============================== Xpack Monitoring ===============================
 xpack.monitoring:
