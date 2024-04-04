@@ -148,7 +148,7 @@ EOT
 
 update_misp_data_files(){
     for DIR in $(ls /var/www/MISP/app/files.dist); do
-        if [ "$DIR" = "certs" ]; then
+        if [ "$DIR" = "certs" ] || [ "$DIR" = "img" ] ; then
             echo "... rsync -azh \"/var/www/MISP/app/files.dist/$DIR\" \"/var/www/MISP/app/files/\""
             rsync -azh "/var/www/MISP/app/files.dist/$DIR" "/var/www/MISP/app/files/"
         else
@@ -248,7 +248,8 @@ init_nginx() {
     
     if [[ ! -f /etc/nginx/certs/cert.pem || ! -f /etc/nginx/certs/key.pem ]]; then
         echo "... generating new self-signed TLS certificate"
-        openssl req -x509 -subj '/CN=localhost' -nodes -newkey rsa:4096 -keyout /etc/nginx/certs/key.pem -out /etc/nginx/certs/cert.pem -days 365
+        openssl req -x509 -subj '/CN=localhost' -nodes -newkey rsa:4096 -keyout /etc/nginx/certs/key.pem -out /etc/nginx/certs/cert.pem -days 365 \
+            -addext "subjectAltName = DNS:localhost, IP:127.0.0.1, IP:::1"
     else
         echo "... TLS certificates found"
     fi
