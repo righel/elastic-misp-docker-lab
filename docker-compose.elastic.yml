@@ -25,8 +25,7 @@ services:
         target: /usr/share/kibana/config/kibana.yml
     environment:
       ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST-http://elasticsearch:9200}
-      KIBANA_USERNAME: ${KIBANA_USERNAME:-kibana_system}
-      KIBANA_PASSWORD: ${KIBANA_PASSWORD:-changeme}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-changeme}
       KIBANA_ENCRYPTION_KEY: ${KIBANA_ENCRYPTION_KEY}
     healthcheck:
       interval: 10s
@@ -49,8 +48,7 @@ services:
       ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
       ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-changeme}
       KIBANA_HOST: ${KIBANA_HOST:-kibana}
-      KIBANA_USERNAME: ${KIBANA_USERNAME:-kibana_system}
-      KIBANA_PASSWORD: ${KIBANA_PASSWORD:-changeme}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-changeme}
       MISP_HOST: ${MISP_HOST}
       MISP_ELASTIC_API_KEY: ${MISP_ELASTIC_API_KEY}
     command: [
