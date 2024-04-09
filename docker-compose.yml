@@ -61,7 +61,6 @@ services:
       - "./gnupg/:/var/www/MISP/.gnupg/"
       # customize by replacing ${CUSTOM_PATH} with a path containing 'files/customize_misp.sh'
       # - "${CUSTOM_PATH}/:/custom/"
-      - "./core/files/enable_xdebug.sh:/custom/customize_misp.sh"
       # mount custom ca root certificates
       # - "./rootca.pem:/usr/local/share/ca-certificates/rootca.crt"
     environment:
