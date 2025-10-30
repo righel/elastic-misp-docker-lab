@@ -2,7 +2,7 @@
 
 This lab explains how to connect MISP to the Elastic Stack in order to leverage IOCs from MISP and trigger alerts based on user defined rules.
 
-![Elastic-MISP Overview Diagram](images/architecture.png "{class='img-responsive'}")
+![Elastic-MISP Overview Diagram](images/elastic-misp-architecture.png "{class='img-responsive'}")
 
 
 MISP is used to gather IOCs from different sources such as open source Threat Intelligence feeds. 
@@ -22,13 +22,13 @@ Everything in this lab is run on Docker [^5].
 [^5]: https://github.com/righel/elastic-misp-docker-lab
 
 ## Installation
-1. Clone the lab repository.
-    ```bash
-    $ git clone https://github.com/righel/elastic-misp-docker-lab.git & cd elastic-misp-docker-lab
-    ```
 
 ### MISP
-
+1. Clone [misp-docker](https://github.com/MISP/misp-docker).
+    ```bash
+    $ git clone https://github.com/MISP/misp-docker.git
+    cd misp-docker/
+    ```
 2. Create the .env file:
     ```
     $ cp template.env .env
@@ -41,11 +41,10 @@ Everything in this lab is run on Docker [^5].
 
 4. When MISP containers finish starting, create a sync user for Elastic on MISP.
 
-
     Using MISP CLI:
     ```
-    $ docker-compose exec misp-core app/Console/cake User create elastic@admin.test 5 1
-    $ docker-compose exec misp-core app/Console/cake User change_authkey elastic2@admin.test
+    $ docker compose exec misp-core app/Console/cake User create elastic@admin.test 5 1
+    $ docker compose exec misp-core app/Console/cake User change_authkey elastic2@admin.test
     Old authentication keys disabled and new key created: 06sDmKQK3E6MSJwsOhYT3N4NzfTpe53ruV0Bydf0
     ```
     
@@ -59,6 +58,20 @@ Everything in this lab is run on Docker [^5].
     
 
 ### Elastic Stack
+
+1. Clone the lab repository.
+    ```bash
+    $ git clone https://github.com/righel/elastic-misp-docker-lab.git
+    cd elastic-misp-docker-lab/
+    ```
+2. Create the .env file:
+    ```
+    $ cp template.env .env
+    ```
+3. Start the MISP containers.
+    ```
+    $ docker compose up -d
+    ```
 
 > The yaml configuration files for Elasticsearch, Kibana and Filebeat are located in `elastic/config/` directory. You can review and change these settings before deploying Elastic Stack.
 
@@ -90,7 +103,7 @@ For more details refer to the official docs:
 
 6. Start the Elastic Stack containers.
     ```
-    $ docker-compose -f docker-compose.elastic.yml -d
+    $ docker compose up -d
     ```
     
 Now you can use MISP and the Elastic Stack.
