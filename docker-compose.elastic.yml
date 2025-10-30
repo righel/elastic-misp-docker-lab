@@ -1,0 +1,81 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:8.12.2
+    configs:
+      - source: elasticsearch_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-changeme}
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test: curl -s -k http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+
+  kibana:
+    image: kibana:8.12.2
+    ports:
+      - 5601:5601
+    configs:
+      - source: kibana_config
+        target: /usr/share/kibana/config/kibana.yml
+    environment:
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST-http://elasticsearch:9200}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-changeme}
+      KIBANA_ENCRYPTION_KEY: ${KIBANA_ENCRYPTION_KEY}
+    healthcheck:
+      interval: 10s
+      retries: 30
+      start_period: 10s
+      test: curl -s -k http://localhost:5601/api/status | grep -q '"level":"available"'
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.12.2
+    user: root
+    configs:
+      - source: filebeat_config
+        target: /usr/share/filebeat/filebeat.yml
+    volumes:
+      - filebeat:/usr/share/filebeat/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
+    environment:
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST:-elasticsearch}
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-changeme}
+      KIBANA_HOST: ${KIBANA_HOST:-kibana}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-changeme}
+      MISP_HOST: ${MISP_HOST}
+      MISP_ELASTIC_API_KEY: ${MISP_ELASTIC_API_KEY}
+    command: [
+      "--strict.perms=false",
+      "-e",
+      "-d", 
+      "info",
+      ]
+    deploy:
+      mode: global
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+
+volumes:
+    filebeat:
+      driver: local
+    kibana:
+      driver: local
+
+configs:
+  filebeat_config:
+    file: elastic/config/filebeat.yml
+  kibana_config:
+    file: elastic/config/kibana.yml
+  elasticsearch_config:
+    file: elastic/config/elasticsearch.yml
+

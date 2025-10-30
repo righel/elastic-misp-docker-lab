@@ -1,0 +1,54 @@
+# https://github.com/elastic/beats/blob/master/filebeat/filebeat.reference.yml
+
+filebeat.modules:
+  - module: threatintel
+    misp:
+      enabled: true
+      var.input: httpjson
+      var.url: "https://${MISP_HOST}/events/restSearch"
+      var.api_token: "${MISP_ELASTIC_API_KEY}"
+      var.first_interval: 24h
+      var.interval: 10m
+      var.ssl.verification_mode: none
+      var.filters:
+        type: ["md5", "sha256", "sha512", "url", "uri", "ip-src", "ip-dst", "hostname", "domain"]
+        tags: ['workflow:state="complete"']
+
+#========================== Filebeat autodiscover ==============================
+# See this URL on how to run Apache2 Filebeat module: # https://www.elastic.co/guide/en/beats/filebeat/current/running-on-docker.html
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      # https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html
+      # This URL alos contains instructions on multi-line logs
+      hints.enabled: true
+
+#================================ Processors ===================================
+processors:
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_locale:
+      format: offset
+  - add_host_metadata:
+      netinfo.enabled: true
+
+#========================== Elasticsearch output ===============================
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOST}"]
+  username: ${ELASTICSEARCH_USERNAME}
+  password: ${ELASTICSEARCH_PASSWORD}
+
+#============================== Dashboards =====================================
+setup.dashboards:
+  enabled: false
+
+#============================== Kibana =========================================
+setup.kibana:
+  host: "${KIBANA_HOST}"
+  username: kibana_system
+  password: ${KIBANA_SYSTEM_PASSWORD}
+
+#============================== Xpack Monitoring ===============================
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
